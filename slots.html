@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Smart Parking - Select Slot</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+font-family: 'Segoe UI', sans-serif;
+background:url("main-bg.jpg") no-repeat center center fixed;
+background-size:cover;
+min-height:100vh;
+padding:40px;
+}
+
+/* dark overlay for better visibility */
+body::before{
+content:"";
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.55);
+z-index:-1;
+}
+
+.container{
+background:white;
+border-radius:20px;
+padding:40px;
+max-width:1200px;
+margin:auto;
+box-shadow:0 25px 60px rgba(0,0,0,0.4);
+}
+
+/* Header */
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:25px;
+flex-wrap:wrap;
+}
+
+.header h2{
+color:#1e3c72;
+}
+
+.badge{
+background:#f1f1f1;
+padding:8px 14px;
+border-radius:20px;
+margin:5px;
+font-size:14px;
+}
+
+/* Legend */
+.legend{
+margin:20px 0;
+display:flex;
+gap:20px;
+font-size:14px;
+}
+
+.legend span{
+display:flex;
+align-items:center;
+gap:6px;
+}
+
+.box{
+width:18px;
+height:18px;
+border-radius:4px;
+}
+
+.green{background:#28a745;}
+.red{background:#dc3545;}
+.yellow{background:#ffc107;}
+
+/* Slot Grid */
+.slot-grid{
+display:grid;
+grid-template-columns:repeat(8,1fr);
+gap:15px;
+margin-top:20px;
+}
+
+.slot{
+padding:18px;
+text-align:center;
+border-radius:10px;
+font-weight:bold;
+cursor:pointer;
+transition:0.3s;
+font-size:16px;
+color:white;
+}
+
+.slot.available{background:#28a745;}
+.slot.booked{background:#dc3545;cursor:not-allowed;}
+.slot.selected{background:#ffc107;color:black;}
+
+.slot:hover:not(.booked){
+transform:scale(1.05);
+}
+
+/* Summary Card */
+.summary{
+margin-top:30px;
+background:#f8f9fa;
+padding:20px;
+border-radius:12px;
+font-size:16px;
+line-height:1.6;
+}
+
+button{
+margin-top:20px;
+padding:15px;
+width:100%;
+border:none;
+border-radius:12px;
+background:#1e3c72;
+color:white;
+font-size:17px;
+cursor:pointer;
+display:none;
+transition:0.3s;
+}
+
+button:hover{
+background:#16335a;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+<h2>Select Parking Slot</h2>
+<div>
+<span class="badge" id="mallBadge"></span>
+<span class="badge" id="dateBadge"></span>
+<span class="badge" id="timeBadge"></span>
+<span class="badge" id="vehicleBadge"></span>
+</div>
+</div>
+
+<div class="legend">
+<span><div class="box green"></div>Available</span>
+<span><div class="box red"></div>Booked</span>
+<span><div class="box yellow"></div>Selected</span>
+</div>
+
+<div id="availableCount"></div>
+
+<div class="slot-grid" id="grid"></div>
+
+<div class="summary" id="summary">
+Select slots to see total price
+</div>
+
+<button id="payBtn" onclick="proceedPayment()">Proceed To Payment</button>
+
+</div>
+
+<script>
+
+// ===== GET DATA =====
+let mall = localStorage.getItem("selectedMall") || "";
+let vehicle = localStorage.getItem("vehicle") || "";
+let date = localStorage.getItem("date") || "";
+let time = localStorage.getItem("time") || "";
+
+// header badges
+document.getElementById("mallBadge").innerText = mall;
+document.getElementById("dateBadge").innerText = date;
+document.getElementById("timeBadge").innerText = time + ":00 - " + (parseInt(time)+1) + ":00";
+document.getElementById("vehicleBadge").innerText = vehicle;
+
+// ===== PRICE =====
+let basePrice = 0;
+let lowerMall = mall.toLowerCase();
+
+if(lowerMall.includes("millennium")){
+   basePrice = (vehicle === "Two Wheeler") ? 40 : 50;
+}
+else if(lowerMall.includes("elpro")){
+   basePrice = (vehicle === "Two Wheeler") ? 30 : 40;
+}
+else if(lowerMall.includes("market")){
+   basePrice = (vehicle === "Two Wheeler") ? 50 : 60;
+}
+else if(lowerMall.includes("amanora")){
+   basePrice = (vehicle === "Two Wheeler") ? 30 : 40;
+}
+
+// ===== DATA =====
+let key = mall + "_" + date + "_" + time + "_" + vehicle;
+
+let data = JSON.parse(localStorage.getItem("slots")) || {};
+let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+
+if(!data[key]) data[key] = [];
+
+let grid = document.getElementById("grid");
+let selectedSlots = [];
+let totalSlots = 40;
+
+// ===== CHECK CANCELLED BOOKINGS =====
+function isCancelled(slot){
+
+return bookings.some(b =>
+b.mall === mall &&
+b.date === date &&
+b.time === time &&
+b.vehicle === vehicle &&
+b.slots?.includes(slot) &&
+b.status === "Cancelled"
+);
+
+}
+
+// ===== AVAILABLE COUNT =====
+let bookedSlots = data[key].filter(s => !isCancelled(s));
+
+document.getElementById("availableCount").innerHTML =
+"<b>Available Slots:</b> " + (totalSlots - bookedSlots.length) + " / " + totalSlots;
+
+
+// ===== GENERATE SLOT GRID =====
+for(let i=1;i<=totalSlots;i++){
+
+let div=document.createElement("div");
+div.innerText=i;
+div.classList.add("slot");
+
+let booked = data[key].includes(i) && !isCancelled(i);
+
+if(booked){
+div.classList.add("booked");
+}else{
+
+div.classList.add("available");
+
+div.onclick=function(){
+
+if(div.classList.contains("available")){
+div.classList.remove("available");
+div.classList.add("selected");
+selectedSlots.push(i);
+}
+else if(div.classList.contains("selected")){
+div.classList.remove("selected");
+div.classList.add("available");
+selectedSlots = selectedSlots.filter(s=>s!==i);
+}
+
+updateSummary();
+
+}
+
+}
+
+grid.appendChild(div);
+
+}
+
+// ===== SUMMARY =====
+function updateSummary(){
+
+let total = basePrice * selectedSlots.length;
+
+document.getElementById("summary").innerHTML =
+"<b>Price Per Slot:</b> ₹"+basePrice+"<br>"+
+"<b>Selected Slots:</b> "+selectedSlots.length+"<br>"+
+"<b>Total Payment:</b> ₹"+total;
+
+if(selectedSlots.length>0){
+document.getElementById("payBtn").style.display="block";
+}else{
+document.getElementById("payBtn").style.display="none";
+}
+
+}
+
+// ===== PROCEED =====
+function proceedPayment(){
+
+data[key] = data[key].concat(selectedSlots);
+
+localStorage.setItem("slots",JSON.stringify(data));
+
+localStorage.setItem("totalAmount",basePrice * selectedSlots.length);
+
+localStorage.setItem("selectedSlots",JSON.stringify(selectedSlots));
+
+window.location.href="payment.html";
+
+}
+
+</script>
+
+</body>
+</html>

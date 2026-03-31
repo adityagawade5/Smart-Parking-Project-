@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Smart Parking - Login</title>
+
+<style>
+body{
+margin:0;
+font-family:'Segoe UI',sans-serif;
+background:url("login-bg.jpg") no-repeat center center fixed;
+background-size:cover;
+}
+
+body::before{
+content:"";
+position:fixed;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.6);
+z-index:-1;
+}
+
+.box{
+width:380px;
+margin:100px auto;
+background:rgba(255,255,255,0.95);
+padding:30px;
+border-radius:15px;
+text-align:center;
+box-shadow:0 20px 50px rgba(0,0,0,0.4);
+}
+
+h2{
+margin-bottom:20px;
+}
+
+input{
+width:100%;
+padding:12px;
+margin-top:10px;
+border-radius:8px;
+border:1px solid #ccc;
+}
+
+button{
+width:100%;
+padding:12px;
+margin-top:15px;
+background:#007bff;
+color:white;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+}
+
+button:hover{
+background:#0056b3;
+}
+
+.switch{
+margin-top:15px;
+cursor:pointer;
+color:#007bff;
+font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<!-- LOGIN SECTION -->
+<div id="loginSection">
+<h2>Login</h2>
+
+<input type="text" id="loginEmail" placeholder="Enter Gmail">
+<input type="password" id="loginPassword" placeholder="Password">
+
+<button onclick="login()">Login</button>
+
+<div class="switch" onclick="showRegister()">
+New User? Register Here
+</div>
+</div>
+
+<!-- REGISTER SECTION -->
+<div id="registerSection" style="display:none;">
+<h2>User Registration</h2>
+
+<input type="text" id="regEmail" placeholder="Enter Gmail">
+<input type="password" id="regPassword" placeholder="Password">
+
+<button onclick="register()">Register</button>
+
+<div class="switch" onclick="showLogin()">
+Back to Login
+</div>
+</div>
+
+</div>
+
+<script>
+
+// 🔐 FIXED ADMIN DETAILS
+const ADMIN_EMAIL = "Vishnu19@gmail.com";
+const ADMIN_PASSWORD = "Vansh@123";
+
+function showRegister(){
+document.getElementById("loginSection").style.display="none";
+document.getElementById("registerSection").style.display="block";
+}
+
+function showLogin(){
+document.getElementById("registerSection").style.display="none";
+document.getElementById("loginSection").style.display="block";
+}
+
+// ===== REGISTER USER =====
+function register(){
+
+let email = document.getElementById("regEmail").value.trim();
+let password = document.getElementById("regPassword").value;
+
+// 1️⃣ Gmail validation
+if(!email.endsWith("@gmail.com")){
+alert("Only @gmail.com email allowed");
+return;
+}
+
+// 2️⃣ Block Admin Email
+if(email === ADMIN_EMAIL){
+alert("This email is reserved for Admin");
+return;
+}
+
+let users = JSON.parse(localStorage.getItem("users")) || [];
+
+// 3️⃣ Duplicate check
+let exists = users.find(u => u.email === email);
+
+if(exists){
+alert("This email is already registered");
+return;
+}
+
+// 4️⃣ Password validation
+if(password.length < 6){
+alert("Password must be at least 6 characters");
+return;
+}
+
+// Save user
+users.push({
+email: email,
+password: password,
+role: "user"
+});
+
+localStorage.setItem("users", JSON.stringify(users));
+
+alert("Registration Successful!");
+showLogin();
+}
+
+// ===== LOGIN FUNCTION =====
+function login(){
+
+let email = document.getElementById("loginEmail").value.trim();
+let password = document.getElementById("loginPassword").value;
+
+// 🔐 ADMIN LOGIN
+if(email === ADMIN_EMAIL && password === ADMIN_PASSWORD){
+
+localStorage.setItem("currentUser", email);
+localStorage.setItem("role","admin");
+
+window.location.href="admin.html";
+return;
+}
+
+// 👤 USER LOGIN
+let users = JSON.parse(localStorage.getItem("users")) || [];
+
+let user = users.find(u => u.email === email && u.password === password);
+
+if(user){
+localStorage.setItem("currentUser", email);
+localStorage.setItem("role","user");
+
+window.location.href="home.html";
+}
+else{
+alert("Invalid Email or Password");
+}
+
+}
+
+</script>
+
+</body>
+</html>

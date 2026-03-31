@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>My Reservations</title>
+<style>
+body{
+font-family:Arial;
+background:#f4f4f4;
+padding:40px;
+}
+.container{
+background:white;
+padding:30px;
+border-radius:15px;
+max-width:1000px;
+margin:auto;
+box-shadow:0 10px 30px rgba(0,0,0,0.2);
+}
+.booking{
+border:1px solid #ddd;
+padding:15px;
+margin-bottom:20px;
+border-radius:10px;
+}
+button{
+margin-top:10px;
+padding:8px;
+border:none;
+border-radius:6px;
+background:#dc3545;
+color:white;
+cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h2>My Reservations</h2>
+<div id="list"></div>
+</div>
+
+<script>
+
+let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+let list = document.getElementById("list");
+
+bookings.forEach((b,index)=>{
+
+let div=document.createElement("div");
+div.classList.add("booking");
+
+div.innerHTML=`
+<b>ID:</b> ${b.id}<br>
+<b>Mall:</b> ${b.mall}<br>
+<b>Date:</b> ${b.date}<br>
+<b>Slots:</b> ${b.slots.join(", ")}<br>
+<b>Amount:</b> ₹${b.amount}<br>
+<b>Status:</b> ${b.status}<br>
+<b>Payment:</b> ${b.paymentStatus}
+`;
+
+if(b.status==="Booked"){
+let btn=document.createElement("button");
+btn.innerText="Cancel & Refund";
+btn.onclick=function(){ cancelBooking(index); };
+div.appendChild(btn);
+}
+
+list.appendChild(div);
+});
+
+function cancelBooking(index){
+
+let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+
+if(confirm("Cancel this booking?")){
+
+// Restore slot
+let key = bookings[index].mall + "_" +
+bookings[index].date + "_" +
+bookings[index].time + "_" +
+bookings[index].vehicle;
+
+let slotData = JSON.parse(localStorage.getItem("slots")) || {};
+
+if(slotData[key]){
+slotData[key] = slotData[key].filter(
+s=>!bookings[index].slots.includes(s)
+);
+}
+
+localStorage.setItem("slots",JSON.stringify(slotData));
+
+bookings[index].status="Cancelled";
+bookings[index].paymentStatus="Refunded";
+
+localStorage.setItem("bookings",JSON.stringify(bookings));
+
+alert("Booking Cancelled & Refunded");
+location.reload();
+}
+}
+</script>
+
+</body>
+</html>

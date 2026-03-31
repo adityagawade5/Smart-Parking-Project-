@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Select Date & Time</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial, sans-serif;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:url("main-bg.jpg") no-repeat center center fixed;
+    background-size:cover;
+    position:relative;
+}
+
+/* Dark overlay */
+body::before{
+content:"";
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.55);
+z-index:-1;
+}
+
+/* Glass Card */
+.container{
+    width:90%;
+    max-width:500px;
+    background:rgba(255,255,255,0.95);
+    padding:40px;
+    border-radius:20px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.4);
+}
+
+h2{
+    text-align:center;
+    margin-bottom:10px;
+    color:#1e3c72;
+}
+
+.mall-name{
+    text-align:center;
+    margin-bottom:25px;
+    font-weight:bold;
+    color:#555;
+}
+
+/* Inputs */
+label{
+    font-size:14px;
+    color:#444;
+    margin-top:15px;
+    display:block;
+}
+
+input, select{
+    width:100%;
+    padding:12px;
+    margin-top:8px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    font-size:14px;
+}
+
+input:focus, select:focus{
+    outline:none;
+    border:1px solid #1e3c72;
+}
+
+/* Vehicle Buttons */
+.vehicle-options{
+    display:flex;
+    gap:10px;
+    margin-top:10px;
+}
+
+.vehicle-btn{
+    flex:1;
+    padding:12px;
+    border-radius:8px;
+    border:1px solid #1e3c72;
+    background:white;
+    cursor:pointer;
+    text-align:center;
+    font-weight:bold;
+}
+
+.vehicle-btn.active{
+    background:#1e3c72;
+    color:white;
+}
+
+/* Continue Button */
+button{
+    width:100%;
+    padding:14px;
+    margin-top:25px;
+    border:none;
+    border-radius:10px;
+    background:#1e3c72;
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+button:hover{
+    background:#16335a;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Book Parking</h2>
+
+<div class="mall-name" id="mallName"></div>
+
+<label>Select Date</label>
+<input type="date" id="date">
+
+<label>Select Time</label>
+<select id="time"></select>
+
+<label>Select Vehicle Type</label>
+<div class="vehicle-options">
+<div class="vehicle-btn" onclick="selectVehicle('Two Wheeler',this)">
+🛵 Two Wheeler
+</div>
+<div class="vehicle-btn" onclick="selectVehicle('Four Wheeler',this)">
+🚗 Four Wheeler
+</div>
+</div>
+
+<button onclick="continueBooking()">Continue</button>
+
+</div>
+
+<script>
+
+if(!localStorage.getItem("selectedMall")){
+    window.location.href="malls.html";
+}
+
+let mall = localStorage.getItem("selectedMall");
+document.getElementById("mallName").innerText = mall;
+
+// Date restriction (today onwards)
+let today = new Date().toISOString().split("T")[0];
+document.getElementById("date").min = today;
+
+// Time slots (8 AM – 11 PM)
+let timeSelect = document.getElementById("time");
+for(let i=8;i<23;i++){
+    let opt = document.createElement("option");
+    opt.value = i;
+    opt.text = i + ":00 - " + (i+1) + ":00";
+    timeSelect.appendChild(opt);
+}
+
+let selectedVehicle = "";
+
+function selectVehicle(type, element){
+
+selectedVehicle = type;
+
+document.querySelectorAll(".vehicle-btn").forEach(btn=>{
+    btn.classList.remove("active");
+});
+
+element.classList.add("active");
+}
+
+function continueBooking(){
+
+let date = document.getElementById("date").value;
+let time = document.getElementById("time").value;
+
+if(!date || !time || !selectedVehicle){
+    alert("Please complete all details");
+    return;
+}
+
+localStorage.setItem("date", date);
+localStorage.setItem("time", time);
+localStorage.setItem("vehicle", selectedVehicle);
+
+window.location.href="slots.html";
+}
+
+</script>
+
+</body>
+</html>

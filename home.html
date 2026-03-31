@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Smart Parking</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Segoe UI',sans-serif;
+}
+
+body{
+background:url("main-bg.jpg") no-repeat center center fixed;
+background-size:cover;
+min-height:100vh;
+}
+
+body::before{
+content:"";
+position:fixed;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.7);
+z-index:-1;
+}
+
+/* NAVBAR */
+.navbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:20px 50px;
+color:white;
+background:rgba(0,0,0,0.4);
+}
+
+.navbar h2{
+font-weight:500;
+}
+
+.navbar button{
+background:#ff4d4d;
+border:none;
+padding:8px 15px;
+color:white;
+border-radius:6px;
+cursor:pointer;
+}
+
+/* MAIN CONTAINER */
+.container{
+width:90%;
+margin:40px auto;
+background:rgba(255,255,255,0.1);
+backdrop-filter:blur(15px);
+padding:40px;
+border-radius:20px;
+box-shadow:0 20px 60px rgba(0,0,0,0.5);
+color:white;
+}
+
+/* NEW BOOKING BUTTON */
+.new-booking{
+background:#ffc107;
+color:black;
+padding:12px 20px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+margin-bottom:30px;
+}
+
+.section-title{
+margin:25px 0 15px;
+font-size:20px;
+}
+
+/* BOOKING CARD */
+.card{
+background:rgba(255,255,255,0.15);
+padding:20px;
+border-radius:15px;
+margin-bottom:15px;
+transition:0.3s;
+}
+
+.card:hover{
+transform:translateY(-5px);
+background:rgba(255,255,255,0.25);
+}
+
+.card b{
+color:#ffc107;
+}
+
+textarea{
+width:100%;
+margin-top:10px;
+padding:8px;
+border-radius:6px;
+border:none;
+}
+
+.action-btn{
+margin-top:10px;
+padding:8px 15px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+.cancel-btn{
+background:#dc3545;
+color:white;
+}
+
+.refund-btn{
+background:#28a745;
+color:white;
+}
+
+.empty{
+opacity:0.7;
+}
+</style>
+
+</head>
+
+<body>
+
+<script>
+if(!localStorage.getItem("currentUser")){
+window.location.href="login.html";
+}
+</script>
+
+<div class="navbar">
+<h2>🚗 Smart Parking</h2>
+<button onclick="logout()">Logout</button>
+</div>
+
+<div class="container">
+
+<button class="new-booking" onclick="location.href='malls.html'">
++ Book New Parking
+</button>
+
+<div class="section-title">Latest Bookings (Last 7 Days)</div>
+<div id="latestBookings"></div>
+
+<div class="section-title">Cancelled Bookings</div>
+<div id="cancelledBookings"></div>
+
+</div>
+
+<script>
+
+let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+
+let now = Date.now();
+let sevenDays = 7 * 24 * 60 * 60 * 1000;
+
+let latestHTML = "";
+let cancelledHTML = "";
+
+bookings.forEach((b,index)=>{
+
+let isRecent = (now - b.bookingDate) <= sevenDays;
+
+// SHOW ACTIVE BOOKINGS
+if(isRecent && b.status === "Booked"){
+
+latestHTML += `
+<div class="card">
+<b>ID:</b> ${b.id}<br>
+<b>Mall:</b> ${b.mall}<br>
+<b>Date:</b> ${b.date}<br>
+<b>Time:</b> ${b.time}:00<br>
+<b>Slots:</b> ${b.slots.join(", ")}<br>
+<b>Amount:</b> ₹${b.amount}<br>
+
+<textarea id="reason${index}" placeholder="Reason for cancellation"></textarea>
+
+<button class="action-btn cancel-btn" onclick="cancelBooking(${index})">
+Cancel Booking
+</button>
+</div>
+`;
+}
+
+// SHOW CANCELLED
+if(b.status === "Cancelled"){
+
+cancelledHTML += `
+<div class="card">
+<b>ID:</b> ${b.id}<br>
+<b>Mall:</b> ${b.mall}<br>
+<b>Amount:</b> ₹${b.amount}<br>
+<b>Reason:</b> ${b.cancelReason}<br>
+<b>Refund Status:</b> ${b.refundStatus}<br>
+
+<button class="action-btn refund-btn" onclick="refundBooking(${index})">
+Process Refund
+</button>
+</div>
+`;
+}
+
+});
+
+document.getElementById("latestBookings").innerHTML =
+latestHTML || "<div class='empty'>No Recent Bookings</div>";
+
+document.getElementById("cancelledBookings").innerHTML =
+cancelledHTML || "<div class='empty'>No Cancelled Bookings</div>";
+
+function cancelBooking(index){
+
+let reason = document.getElementById("reason"+index).value;
+
+if(reason===""){
+alert("Please enter cancellation reason");
+return;
+}
+
+bookings[index].status="Cancelled";
+bookings[index].cancelReason=reason;
+
+localStorage.setItem("bookings",JSON.stringify(bookings));
+location.reload();
+}
+
+function refundBooking(index){
+bookings[index].refundStatus="Refunded";
+localStorage.setItem("bookings",JSON.stringify(bookings));
+location.reload();
+}function logout(){
+   localStorage.removeItem("currentUser");
+   localStorage.removeItem("role");
+   window.location.href="login.html";
+}
+
+</script>
+
+</body>
+</html>

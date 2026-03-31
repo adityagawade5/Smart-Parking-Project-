@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Payment - Smart Parking</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:url("main-bg.jpg") no-repeat center center fixed;
+background-size:cover;
+}
+
+body::before{
+content:"";
+position:fixed;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.65);
+z-index:-1;
+}
+
+.container{
+width:420px;
+margin:80px auto;
+background:white;
+padding:30px;
+border-radius:12px;
+text-align:center;
+box-shadow:0 10px 40px rgba(0,0,0,0.4);
+}
+
+.method{
+padding:12px;
+margin:10px 0;
+background:#f4f4f4;
+border-radius:6px;
+cursor:pointer;
+font-weight:bold;
+}
+
+.hidden{
+display:none;
+}
+
+input{
+width:100%;
+padding:10px;
+margin-top:10px;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+button{
+width:100%;
+padding:12px;
+margin-top:15px;
+background:#28a745;
+color:white;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+button:hover{
+background:#218838;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+<h2>Complete Payment</h2>
+
+<h3>Amount: ₹<span id="amount"></span></h3>
+
+<div class="method" onclick="showUPI()">Pay via UPI</div>
+<div class="method" onclick="showCard()">Pay via Card</div>
+
+<!-- UPI SECTION -->
+<div id="upiSection" class="hidden">
+
+<h4>Enter Your UPI ID</h4>
+<input type="text" id="userUpi" placeholder="Enter your UPI ID">
+
+<h4>Scan & Pay</h4>
+<img id="qrImage" width="200">
+
+<p>Admin UPI ID: <b>adityagawade558-2@khdfcbank</b></p>
+
+<button onclick="completePayment()">Confirm Payment</button>
+
+</div>
+
+<!-- CARD SECTION -->
+<div id="cardSection" class="hidden">
+
+<h4>Enter Card Details</h4>
+
+<input type="text" placeholder="Card Number">
+<input type="text" placeholder="Card Holder Name">
+<input type="text" placeholder="Expiry Date (MM/YY)">
+<input type="text" placeholder="CVV">
+
+<button onclick="completePayment()">Pay Now</button>
+
+</div>
+
+</div>
+
+<script>
+
+// ===== GET TOTAL AMOUNT =====
+let amount = localStorage.getItem("totalAmount") || 0;
+document.getElementById("amount").innerText = amount;
+
+// ===== GENERATE ADMIN UPI QR =====
+let upiLink = `upi://pay?pa=adityagawade558-2@khdfcbank&pn=SmartParking&am=${amount}&cu=INR`;
+let qrURL = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiLink)}`;
+document.getElementById("qrImage").src = qrURL;
+
+// ===== SHOW PAYMENT METHOD =====
+function showUPI(){
+document.getElementById("upiSection").classList.remove("hidden");
+document.getElementById("cardSection").classList.add("hidden");
+}
+
+function showCard(){
+document.getElementById("cardSection").classList.remove("hidden");
+document.getElementById("upiSection").classList.add("hidden");
+}
+
+// ===== COMPLETE PAYMENT =====
+function completePayment(){
+
+let userUpi = document.getElementById("userUpi")?.value || "Card Payment";
+
+let bookingId = "SP" + Date.now();
+
+let booking = {
+   id: bookingId,
+   mall: localStorage.getItem("selectedMall"),
+   date: localStorage.getItem("date"),
+   time: localStorage.getItem("time"),
+   vehicle: localStorage.getItem("vehicle"),
+   slots: JSON.parse(localStorage.getItem("selectedSlots")) || [],
+   amount: parseInt(localStorage.getItem("totalAmount")),
+   userUpi: userUpi,
+   status: "Booked",
+   payment: "Paid",
+   cancelReason: "",
+   refundStatus: "Not Refunded",
+   bookingDate: Date.now()
+};
+
+let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+bookings.push(booking);
+localStorage.setItem("bookings", JSON.stringify(bookings));
+
+// Clear temporary slot data
+localStorage.removeItem("selectedSlots");
+
+// Redirect to ticket page
+window.location.href="ticket.html";
+}
+
+</script>
+
+</body>
+</html>

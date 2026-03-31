@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Select Mall - Smart Parking</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+font-family:'Segoe UI',sans-serif;
+background:url("main-bg.jpg") no-repeat center center fixed;
+background-size:cover;
+min-height:100vh;
+color:white;
+position:relative;
+}
+
+/* dark overlay */
+body::before{
+content:"";
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.55);
+z-index:-1;
+}
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:20px 40px;
+background:rgba(0,0,0,0.3);
+}
+
+.container{
+padding:40px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+gap:30px;
+margin-top:30px;
+}
+
+.card{
+background:white;
+color:black;
+border-radius:20px;
+overflow:hidden;
+box-shadow:0 15px 40px rgba(0,0,0,0.4);
+cursor:pointer;
+transition:0.3s;
+}
+
+.card:hover{
+transform:translateY(-10px);
+}
+
+.card img{
+width:100%;
+height:200px;
+object-fit:cover;
+}
+
+.card-content{
+padding:20px;
+text-align:center;
+}
+
+.card-content h3{
+margin-bottom:10px;
+}
+
+button{
+background:#dc3545;
+border:none;
+padding:8px 15px;
+color:white;
+border-radius:6px;
+cursor:pointer;
+}
+</style>
+
+<script>
+// Protect page
+if(!localStorage.getItem("currentUser")){
+window.location.href="login.html";
+}
+</script>
+
+</head>
+
+<body>
+
+<div class="header">
+<h2>Select Mall</h2>
+<button onclick="goHome()">Home</button>
+</div>
+
+<div class="container">
+
+<div class="grid">
+
+<div class="card" onclick="selectMall('Phoenix Mall of the Millennium')">
+<img src="phoenix-millennium.jpg">
+<div class="card-content">
+<h3>Phoenix Mall of the Millennium</h3>
+<p>Premium Parking Facility</p>
+</div>
+</div>
+
+<div class="card" onclick="selectMall('ElPro City Square Mall')">
+<img src="elpro.jpg">
+<div class="card-content">
+<h3>ElPro City Square Mall</h3>
+<p>Secure Parking Slots</p>
+</div>
+</div>
+
+<div class="card" onclick="selectMall('Phoenix Market City Pune')">
+<img src="phoenix-marketcity.jpg">
+<div class="card-content">
+<h3>Phoenix Market City Pune</h3>
+<p>Smart Parking Available</p>
+</div>
+</div>
+
+<div class="card" onclick="selectMall('Amanora Mall')">
+<img src="amanora.jpg">
+<div class="card-content">
+<h3>Amanora Mall</h3>
+<p>Easy Slot Booking</p>
+</div>
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+function selectMall(mallName){
+localStorage.setItem("selectedMall",mallName);
+window.location.href="booking-details.html";
+}
+
+function goHome(){
+window.location.href="home.html";
+}
+
+</script>
+
+</body>
+</html>
